@@ -1,0 +1,61 @@
+/* style.css */
+
+/* تنسيق عام للصفحة */
+body {
+  font-family: "Tahoma", sans-serif;
+  background-color: #f4f4f9;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+/* العنوان */
+h1 {
+  color: #333;
+  margin-top: 30px;
+  font-size: 24px;
+}
+
+/* مربع النص */
+textarea {
+  width: 80%;
+  max-width: 500px;
+  height: 120px;
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  margin-top: 20px;
+  resize: none;
+}
+
+/* الأزرار */
+button {
+  margin: 10px;
+  padding: 12px 25px;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+/* زر التشغيل */
+button:first-of-type {
+  background-color: #4CAF50;
+  color: white;
+}
+
+button:first-of-type:hover {
+  background-color: #45a049;
+}
+
+/* زر التنزيل */
+button:last-of-type {
+  background-color: #007BFF;
+  color: white;
+}
+
+button:last-of-type:hover {
+  background-color: #0056b3;
+}

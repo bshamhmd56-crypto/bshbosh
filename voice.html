@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>تحويل النص إلى كلام مع تنزيل</title>
+  <link rel="stylesheet" href="wepVstyle.css">
+</head>
+<body>
+  <h1>تحويل النص إلى كلام مع خيار التنزيل</h1>
+  <textarea id="text" rows="5" cols="40" placeholder="اكتب النص هنا..."></textarea>
+  <br>
+  <button onclick="speak()">تشغيل الصوت</button>
+  <button onclick="downloadAudio()">تنزيل الصوت</button>
+  <a href="index.html">الرجوع للصفحة الرئيسية</a>
+
+  <script>
+    let audioChunks = [];
+    let mediaRecorder;
+
+    function speak() {
+      const text = document.getElementById("text").value;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "ar-SA";
+
+      // تشغيل الصوت
+      window.speechSynthesis.speak(utterance);
+
+      // تسجيل الصوت باستخدام MediaRecorder
+      const audioContext = new AudioContext();
+      const dest = audioContext.createMediaStreamDestination();
+      const source = audioContext.createMediaStreamSource(dest.stream);
+
+      mediaRecorder = new MediaRecorder(dest.stream);
+      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+      mediaRecorder.start();
+
+      utterance.onend = () => {
+        mediaRecorder.stop();
+      };
+    }
+
+    function downloadAudio() {
+      if (audioChunks.length > 0) {
+        const blob = new Blob(audioChunks, { type: 'audio/mp3' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "speech.mp3";
+        a.click();
+      } else {
+        alert("لم يتم تسجيل أي صوت بعد!");
+      }
+    }
+  </script>
+</body>
+</html>
