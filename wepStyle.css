@@ -241,7 +241,11 @@ input{
 }
 @media (max-width: 768px) {
   body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     font-size: 16px;
+      
   }
   sitbar {
     display: none;
@@ -252,6 +256,7 @@ input{
 
 
   
+
 
 
 
