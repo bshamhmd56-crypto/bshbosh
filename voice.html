@@ -1,44 +1,158 @@
 <!DOCTYPE html>
 <html lang="ar">
+
 <head>
   <meta charset="UTF-8">
-  <title>تحويل النص إلى كلام مع تنزيل</title>
+  <title>قراءة طبيعية للنصوص والملفات بالعربية</title>
   <link rel="stylesheet" href="wepVstyle.css">
 </head>
+
 <body>
-  <h1>تحويل النص إلى كلام مع خيار التنزيل</h1>
+  <h1>تحويل النصوص والملفات إلى كلام عربي طبيعي</h1>
+
   <textarea id="text" rows="5" cols="40" placeholder="اكتب النص هنا..."></textarea>
   <br>
-  <button onclick="speak()">تشغيل الصوت</button>
+  <input type="file" id="fileInput" accept=".txt,.docx,.pdf,.pptx">
+  <br><br>
+
+  <!-- قائمة اختيار الصوت -->
+  <label for="voiceSelect">اختر الصوت:</label>
+  <select id="voiceSelect"></select>
+  <br><br>
+
+  <button onclick="speakText()">تشغيل النص المكتوب</button>
+  <button onclick="speakFile()">تشغيل الملف</button>
+  <button onclick="stopSpeech()">إيقاف الصوت</button>
+  <button onclick="clearText()">حذف النص</button>
   <button onclick="downloadAudio()">تنزيل الصوت</button>
-  <a href="index.html">الرجوع للصفحة الرئيسية</a>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pptx-parser/dist/pptx-parser.min.js"></script>
 
   <script>
     let audioChunks = [];
     let mediaRecorder;
+    let selectedVoice = null;
 
-    function speak() {
+    // تحميل الأصوات وإضافتها للقائمة
+    function loadVoices() {
+      const voices = window.speechSynthesis.getVoices();
+      const select = document.getElementById("voiceSelect");
+      select.innerHTML = "";
+
+      voices.forEach((voice, i) => {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = voice.name + " (" + voice.lang + ")";
+        select.appendChild(option);
+      });
+
+      // اختيار أول صوت عربي تلقائيًا إن وجد
+      const arabicVoiceIndex = voices.findIndex(v => v.lang.startsWith("ar"));
+      if (arabicVoiceIndex >= 0) {
+        select.value = arabicVoiceIndex;
+        selectedVoice = voices[arabicVoiceIndex];
+      }
+    }
+
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+
+    // تغيير الصوت عند اختيار جديد
+    document.getElementById("voiceSelect").addEventListener("change", e => {
+      const voices = window.speechSynthesis.getVoices();
+      selectedVoice = voices[e.target.value];
+    });
+
+    function speakText() {
       const text = document.getElementById("text").value;
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "ar-SA";
+      readTextNaturally(text);
+    }
 
-      // تشغيل الصوت
-      window.speechSynthesis.speak(utterance);
+    function speakFile() {
+      const file = document.getElementById("fileInput").files[0];
+      if (!file) {
+        alert("الرجاء اختيار ملف أولاً!");
+        return;
+      }
 
-      // تسجيل الصوت باستخدام MediaRecorder
+      const reader = new FileReader();
+      const ext = file.name.split('.').pop().toLowerCase();
+
+      if (ext === "txt") {
+        reader.onload = e => readTextNaturally(e.target.result);
+        reader.readAsText(file, "UTF-8");
+      } else if (ext === "docx") {
+        reader.onload = e => {
+          mammoth.extractRawText({ arrayBuffer: e.target.result })
+            .then(result => readTextNaturally(result.value));
+        };
+        reader.readAsArrayBuffer(file);
+      } else if (ext === "pdf") {
+        reader.onload = async e => {
+          const pdf = await pdfjsLib.getDocument({ data: e.target.result }).promise;
+          let text = "";
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            text += content.items.map(item => item.str).join(" ") + " ";
+          }
+          readTextNaturally(text);
+        };
+        reader.readAsArrayBuffer(file);
+      } else if (ext === "pptx") {
+        reader.onload = async e => {
+          const slides = await window.pptxParser.parse(e.target.result);
+          let text = slides.map(slide => slide.text).join(" ");
+          readTextNaturally(text);
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        alert("صيغة الملف غير مدعومة!");
+      }
+    }
+
+    // قراءة طبيعية (جملة جملة)
+    function readTextNaturally(text) {
+      audioChunks = [];
+      const sentences = text.split(/[\.\!\؟]+/);
+      let index = 0;
+
       const audioContext = new AudioContext();
       const dest = audioContext.createMediaStreamDestination();
-      const source = audioContext.createMediaStreamSource(dest.stream);
-
       mediaRecorder = new MediaRecorder(dest.stream);
       mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
       mediaRecorder.start();
 
-      utterance.onend = () => {
-        mediaRecorder.stop();
-      };
+      function speakNextSentence() {
+        if (index < sentences.length) {
+          const utterance = new SpeechSynthesisUtterance(sentences[index].trim());
+          utterance.voice = selectedVoice;
+          utterance.lang = selectedVoice ? selectedVoice.lang : "ar-SA";
+          utterance.rate = 1;
+          utterance.pitch = 1;
+          window.speechSynthesis.speak(utterance);
+          index++;
+          utterance.onend = speakNextSentence;
+        } else {
+          mediaRecorder.stop();
+        }
+      }
+
+      speakNextSentence();
     }
 
+    // زر إيقاف الصوت
+    function stopSpeech() {
+      window.speechSynthesis.cancel();
+    }
+
+    // زر حذف النص
+    function clearText() {
+      document.getElementById("text").value = "";
+    }
+
+    // تنزيل الصوت
     function downloadAudio() {
       if (audioChunks.length > 0) {
         const blob = new Blob(audioChunks, { type: 'audio/mp3' });
@@ -53,4 +167,5 @@
     }
   </script>
 </body>
+
 </html>
