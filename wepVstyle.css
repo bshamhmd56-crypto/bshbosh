@@ -1,61 +1,87 @@
-/* style.css */
-
-/* تنسيق عام للصفحة */
+/* إعدادات عامة */
 body {
-  font-family: "Tahoma", sans-serif;
-  background-color: #f4f4f9;
+  font-family: "Cairo", Tahoma, Arial, sans-serif;
+  background-color: rgb(192, 168, 136);
+  direction: rtl;
   text-align: center;
   margin: 0;
-  padding: 0;
+  padding: 20px;
+  color: #2c3e50;
 }
 
 /* العنوان */
 h1 {
-  color: #333;
-  margin-top: 30px;
-  font-size: 24px;
+  color: #1e3a8a;
+  margin-bottom: 20px;
 }
 
 /* مربع النص */
 textarea {
   width: 80%;
-  max-width: 500px;
   height: 120px;
   padding: 10px;
   font-size: 16px;
-  border: 2px solid #ccc;
+  border: 1px solid #ccc;
   border-radius: 8px;
-  margin-top: 20px;
-  resize: none;
+  margin-bottom: 15px;
+  resize: vertical;
+}
+
+/* إدخال الملف */
+input[type="file"] {
+  margin: 10px 0;
+  padding: 8px;
+}
+
+/* قائمة الأصوات */
+label {
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+select {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #aaa;
 }
 
 /* الأزرار */
 button {
-  margin: 10px;
-  padding: 12px 25px;
-  font-size: 16px;
+  margin: 6px;
+  padding: 10px 16px;
+  font-size: 15px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   transition: 0.3s;
 }
 
-/* زر التشغيل */
-button:first-of-type {
-  background-color: #4CAF50;
+button:hover {
+  opacity: 0.9;
+}
+
+button:nth-child(1),
+button:nth-child(2) {
+  background-color: #2563eb;
   color: white;
 }
 
-button:first-of-type:hover {
-  background-color: #45a049;
+button:nth-child(3),
+button:nth-child(4),
+button:nth-child(5) {
+  background-color: #e5e7eb;
+  color: #111827;
 }
 
-/* زر التنزيل */
-button:last-of-type {
-  background-color: #007BFF;
-  color: white;
-}
+/* استجابة للشاشات الصغيرة */
+@media (max-width: 600px) {
+  textarea {
+    width: 95%;
+  }
 
-button:last-of-type:hover {
-  background-color: #0056b3;
+  button {
+    display: block;
+    width: 90%;
+    margin: 8px auto;
+  }
 }
