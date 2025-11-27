@@ -248,13 +248,20 @@ input{
         align-items: center;
         justify-content: center;
         position: absolute;
-        bottom: -160px;
-        grid-area: sit;
-        background-color: rgba(175, 167, 167, 0.5);
         width: 80%;
         height: 80%;
-        margin-left: 10%;
-        border-radius: 20px;
+        top: 75px;
+
+        
+    }
+    .head{
+        width: 450px;
+        margin-left: 55px;
+    }
+    .nav{
+        
+
+        width: 900px;
     }
     #bv{
         left: 30px;
