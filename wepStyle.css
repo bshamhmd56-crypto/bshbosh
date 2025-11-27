@@ -71,15 +71,16 @@ ul li{
 #ha{
     color: rgb(21, 6, 224);
     position: absolute;
-    top: -50px;
+    top: 20px;
     text-transform: uppercase;
     text-shadow: 4px 5px 5px rgb(15, 10, 3);
 
 }
-h2{
+#bv{
     color: rgb(53, 11, 238);
     position: absolute;
-    top: -120px;
+    top: 100px;
+    left: 35%;
     text-transform: uppercase;
     text-shadow: 4px 5px 5px black;
 }
@@ -209,6 +210,7 @@ h3{
     height: 80%;
     margin-left: 10%;
     border-radius: 20px;
+    flex-wrap: wrap;
     
 
 }
@@ -216,7 +218,7 @@ h3{
     display: flex;
     position: absolute;
     bottom: -500px;
-    height: 30%;
+    height:2px;
     width: 100%;
     grid-area: foot;
     background-color: rgb(63, 60, 60);
@@ -240,26 +242,37 @@ input{
     
 }
 @media (max-width: 768px) {
-  body {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 16px;
-      
-  }
-  sitbar {
-    display: none;
-  }
-}
+    body {
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        bottom: -160px;
+        grid-area: sit;
+        background-color: rgba(175, 167, 167, 0.5);
+        width: 80%;
+        height: 80%;
+        margin-left: 10%;
+        border-radius: 20px;
+    }
+    #bv{
+        left: 30px;
+        width: 40vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: nowrap;
+        
+    }
 
+    .sidebar {
+        display: none;
+    }
+}
     
 
 
   
-
-
-
-
-
 
 
