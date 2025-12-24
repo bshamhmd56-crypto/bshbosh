@@ -1,27 +1,27 @@
 <!DOCTYPE html>
 <html lang="ar">
-
 <head>
   <meta charset="UTF-8">
-  <title>قراءة طبيعية للنصوص والملفات بالعربية</title>
-  <link rel="stylesheet" href="wepVstyle.css">
+  <title>قارئ النصوص بالصوت</title>
 </head>
-
 <body>
-  <h1>تحويل النصوص والملفات إلى كلام عربي طبيعي</h1>
+  <h2>قارئ النصوص بالصوت</h2>
+  
+  <textarea id="text" rows="10" cols="60" placeholder="أدخل النص هنا..."></textarea><br>
+  <input type="file" id="fileInput"><br><br>
 
-  <textarea id="text" rows="5" cols="40" placeholder="اكتب النص هنا..."></textarea>
-  <br>
-  <input type="file" id="fileInput" accept=".txt,.docx,.pdf,.pptx">
-  <br><br>
+  <label>اختيار الصوت:</label>
+  <select id="voiceSelect"></select><br><br>
 
-  <!-- قائمة اختيار الصوت -->
-  <label for="voiceSelect">اختر الصوت:</label>
-  <select id="voiceSelect"></select>
-  <br><br>
+  <label>اختيار التنسيق:</label>
+  <select id="formatSelect">
+    <option value="mp3">MP3</option>
+    <option value="wav">WAV</option>
+    <option value="ogg">OGG</option>
+  </select><br><br>
 
-  <button onclick="speakText()">تشغيل النص المكتوب</button>
-  <button onclick="speakFile()">تشغيل الملف</button>
+  <button onclick="speakText()">قراءة النص</button>
+  <button onclick="speakFile()">قراءة الملف</button>
   <button onclick="stopSpeech()">إيقاف الصوت</button>
   <button onclick="clearText()">حذف النص</button>
   <button onclick="downloadAudio()">تنزيل الصوت</button>
@@ -35,7 +35,7 @@
     let mediaRecorder;
     let selectedVoice = null;
 
-    // تحميل الأصوات وإضافتها للقائمة
+    // تحميل الأصوات
     function loadVoices() {
       const voices = window.speechSynthesis.getVoices();
       const select = document.getElementById("voiceSelect");
@@ -48,25 +48,62 @@
         select.appendChild(option);
       });
 
-      // اختيار أول صوت عربي تلقائيًا إن وجد
       const arabicVoiceIndex = voices.findIndex(v => v.lang.startsWith("ar"));
       if (arabicVoiceIndex >= 0) {
         select.value = arabicVoiceIndex;
         selectedVoice = voices[arabicVoiceIndex];
       }
     }
-
     window.speechSynthesis.onvoiceschanged = loadVoices;
 
-    // تغيير الصوت عند اختيار جديد
     document.getElementById("voiceSelect").addEventListener("change", e => {
       const voices = window.speechSynthesis.getVoices();
       selectedVoice = voices[e.target.value];
     });
 
+    // تقسيم النصوص الطويلة
+    function splitText(text, chunkSize = 3000) {
+      const chunks = [];
+      for (let i = 0; i < text.length; i += chunkSize) {
+        chunks.push(text.substring(i, i + chunkSize));
+      }
+      return chunks;
+    }
+
+    // قراءة نص طويل
+    function speakLongText(text) {
+      audioChunks = [];
+      const chunks = splitText(text);
+      let index = 0;
+
+      const audioContext = new AudioContext();
+      const dest = audioContext.createMediaStreamDestination();
+      mediaRecorder = new MediaRecorder(dest.stream);
+      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+      mediaRecorder.start();
+
+      function speakChunk() {
+        if (index < chunks.length) {
+          const utterance = new SpeechSynthesisUtterance(chunks[index]);
+          utterance.voice = selectedVoice;
+          utterance.lang = selectedVoice ? selectedVoice.lang : "ar-SA";
+          utterance.rate = 1;
+          utterance.pitch = 1;
+          utterance.onend = () => {
+            index++;
+            setTimeout(speakChunk, 300);
+          };
+          window.speechSynthesis.speak(utterance);
+        } else {
+          mediaRecorder.stop();
+        }
+      }
+      speakChunk();
+    }
+
     function speakText() {
       const text = document.getElementById("text").value;
-      readTextNaturally(text);
+      speakLongText(text);
     }
 
     function speakFile() {
@@ -80,12 +117,12 @@
       const ext = file.name.split('.').pop().toLowerCase();
 
       if (ext === "txt") {
-        reader.onload = e => readTextNaturally(e.target.result);
+        reader.onload = e => speakLongText(e.target.result);
         reader.readAsText(file, "UTF-8");
       } else if (ext === "docx") {
         reader.onload = e => {
           mammoth.extractRawText({ arrayBuffer: e.target.result })
-            .then(result => readTextNaturally(result.value));
+            .then(result => speakLongText(result.value));
         };
         reader.readAsArrayBuffer(file);
       } else if (ext === "pdf") {
@@ -97,14 +134,14 @@
             const content = await page.getTextContent();
             text += content.items.map(item => item.str).join(" ") + " ";
           }
-          readTextNaturally(text);
+          speakLongText(text);
         };
         reader.readAsArrayBuffer(file);
       } else if (ext === "pptx") {
         reader.onload = async e => {
           const slides = await window.pptxParser.parse(e.target.result);
           let text = slides.map(slide => slide.text).join(" ");
-          readTextNaturally(text);
+          speakLongText(text);
         };
         reader.readAsArrayBuffer(file);
       } else {
@@ -112,54 +149,27 @@
       }
     }
 
-    // قراءة طبيعية (جملة جملة)
-    function readTextNaturally(text) {
-      audioChunks = [];
-      const sentences = text.split(/[\.\!\؟]+/);
-      let index = 0;
-
-      const audioContext = new AudioContext();
-      const dest = audioContext.createMediaStreamDestination();
-      mediaRecorder = new MediaRecorder(dest.stream);
-      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-      mediaRecorder.start();
-
-      function speakNextSentence() {
-        if (index < sentences.length) {
-          const utterance = new SpeechSynthesisUtterance(sentences[index].trim());
-          utterance.voice = selectedVoice;
-          utterance.lang = selectedVoice ? selectedVoice.lang : "ar-SA";
-          utterance.rate = 1;
-          utterance.pitch = 1;
-          window.speechSynthesis.speak(utterance);
-          index++;
-          utterance.onend = speakNextSentence;
-        } else {
-          mediaRecorder.stop();
-        }
-      }
-
-      speakNextSentence();
-    }
-
-    // زر إيقاف الصوت
     function stopSpeech() {
       window.speechSynthesis.cancel();
     }
 
-    // زر حذف النص
     function clearText() {
       document.getElementById("text").value = "";
     }
 
-    // تنزيل الصوت
     function downloadAudio() {
       if (audioChunks.length > 0) {
-        const blob = new Blob(audioChunks, { type: 'audio/mp3' });
+        const format = document.getElementById("formatSelect").value;
+        let mimeType;
+        if (format === "wav") mimeType = "audio/wav";
+        else if (format === "ogg") mimeType = "audio/ogg";
+        else mimeType = "audio/mp3";
+
+        const blob = new Blob(audioChunks, { type: mimeType });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "speech.mp3";
+        a.download = `speech.${format}`;
         a.click();
       } else {
         alert("لم يتم تسجيل أي صوت بعد!");
@@ -167,5 +177,4 @@
     }
   </script>
 </body>
-
 </html>
