@@ -241,19 +241,14 @@ input{
     
     
 }
+/* تنسيقات مخصصة للهواتف فقط */
 @media (max-width: 768px) {
     body {
-        font-size: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: absolute;
-        width: 80%;
-        height: 80%;
-        top: 75px;
-
-        
+        font-size: 14px;
     }
+}
+
+
     .head{
         width: 450px;
         margin-left: 55px;
