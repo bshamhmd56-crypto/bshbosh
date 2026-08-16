@@ -88,9 +88,9 @@ text-transform: capitalize;
 }
 @media(max-width: 300px) {
     .sit>img{
-    width: 150px;
-    height: 100px;
-    margin:10px;
+    width: 100px;
+    height: 70px;
+    margin:5px;
 
 }
 }
