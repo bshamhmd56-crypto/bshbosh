@@ -86,7 +86,7 @@ text-transform: capitalize;
     background-color: aqua;
     margin: 20px;
 }
-@media(max-width: 600px) {
+@media(max-width: 300px) {
     .sit>img{
     width: 150px;
     height: 100px;
